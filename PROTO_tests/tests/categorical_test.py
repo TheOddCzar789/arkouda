@@ -34,7 +34,7 @@ def get_randomized_categorical() -> ak.Categorical:
     )
 
 
-class TestCategorical():
+class TestCategorical:
     @classmethod
     def setup_class(cls):
         # super(CategoricalTest, cls).setUpClass()
@@ -45,7 +45,7 @@ class TestCategorical():
         cat = get_categorical()
 
         assert [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] == cat.codes.to_list() == cat.segments.to_list()
-  
+
         assert (
             [
                 "string 1",
@@ -59,8 +59,8 @@ class TestCategorical():
                 "string 9",
                 "string 10",
                 "N/A",
-            ] ==
-            cat.categories.to_list(),
+            ]
+            == cat.categories.to_list(),
         )
         assert 10 == cat.size
         assert "Categorical" == cat.objType
@@ -114,8 +114,8 @@ class TestCategorical():
         assert (
             ak.Categorical(
                 ak.array(["string", "string1", "string3", "non-string", "non-string2"])
-            ).to_list() ==
-            cat.unique().to_list(),
+            ).to_list()
+            == cat.unique().to_list(),
         )
 
     def test_to_ndarray(self):
@@ -138,11 +138,11 @@ class TestCategorical():
 
     def test_equality(self):
         cat = get_categorical()
-        catDupe = get_categorical()
-        catNonDupe = get_randomized_categorical()
+        cat_dupe = get_categorical()
+        cat_non_dupe = get_randomized_categorical()
 
-        assert cat.to_list() == catDupe.to_list()
-        assert not (cat == catNonDupe).any()
+        assert cat.to_list() == cat_dupe.to_list()
+        assert not (cat == cat_non_dupe).any()
 
         c1 = ak.Categorical(ak.array(["a", "b", "c", "a", "b"]))
         c2 = ak.Categorical(ak.array(["a", "x", "c", "y", "b"]))
@@ -151,41 +151,23 @@ class TestCategorical():
 
     def test_binop(self):
         cat = get_categorical()
-        catDupe = get_categorical()
-        catNonDupe = get_randomized_categorical()
+        cat_dupe = get_categorical()
+        cat_non_dupe = get_randomized_categorical()
 
-        assert cat._binop(catDupe, "==").all()
-        assert cat._binop(catNonDupe, "!=").all()
+        assert cat._binop(cat_dupe, "==").all()
+        assert cat._binop(cat_non_dupe, "!=").all()
 
-        assert (
-            ak.ones(10, dtype=bool).to_list() ==
-            cat._binop(catDupe, "==").to_list(),
-        )
+        assert ak.ones(10, dtype=bool).to_list() == cat._binop(cat_dupe, "==").to_list()
 
-        assert (
-            ak.zeros(10, dtype=bool).to_list() ==
-            cat._binop(catDupe, "!=").to_list(),
-        )
+        assert ak.zeros(10, dtype=bool).to_list() == cat._binop(cat_dupe, "!=").to_list()
 
-        assert (
-            (ak.arange(10) == 0).to_list() ==
-            cat._binop("string 1", "==").to_list(),
-        )
+        assert (ak.arange(10) == 0).to_list() == cat._binop("string 1", "==").to_list()
 
-        assert (
-            (ak.arange(10) == 0).to_list() ==
-            cat._binop(np.str_("string 1"), "==").to_list(),
-        )
+        assert (ak.arange(10) == 0).to_list() == cat._binop(np.str_("string 1"), "==").to_list()
 
-        assert (
-            (ak.arange(10) != 0).to_list() ==
-            cat._binop("string 1", "!=").to_list(),
-        )
+        assert (ak.arange(10) != 0).to_list() == cat._binop("string 1", "!=").to_list()
 
-        assert (
-            (ak.arange(10) != 0).to_list() ==
-            cat._binop(np.str_("string 1"), "!=").to_list(),
-        )
+        assert (ak.arange(10) != 0).to_list() == cat._binop(np.str_("string 1"), "!=").to_list()
 
         with pytest.raises(NotImplementedError):
             cat._binop("string 1", "===")
@@ -195,20 +177,20 @@ class TestCategorical():
 
     def test_in1d(self):
         vals = [i % 3 for i in range(10)]
-        valsTwo = [i % 2 for i in range(10)]
+        vals_two = [i % 2 for i in range(10)]
 
-        stringsOne = ak.array(["String {}".format(i) for i in vals])
-        stringsTwo = ak.array(["String {}".format(i) for i in valsTwo])
-        catOne = ak.Categorical(stringsOne)
-        catTwo = ak.Categorical(stringsTwo)
+        strings_one = ak.array(["String {}".format(i) for i in vals])
+        strings_two = ak.array(["String {}".format(i) for i in vals_two])
+        cat_one = ak.Categorical(strings_one)
+        cat_two = ak.Categorical(strings_two)
 
         answer = [x < 2 for x in vals]
 
-        assert answer == ak.in1d(catOne, catTwo).to_list()
-        assert answer == ak.in1d(catOne, stringsTwo).to_list()
+        assert answer == ak.in1d(cat_one, cat_two).to_list()
+        assert answer == ak.in1d(cat_one, strings_two).to_list()
 
         with pytest.raises(TypeError):
-            ak.in1d(catOne, ak.randint(0, 5, 5))
+            ak.in1d(cat_one, ak.randint(0, 5, 5))
 
     def test_where(self):
         revs = ak.arange(10) % 2 == 0
@@ -253,28 +235,28 @@ class TestCategorical():
         assert cat2[~revs].to_list() == ans[~revs].to_list()
 
     def test_concatenate(self):
-        catOne = get_categorical("string", 51)
-        catTwo = get_categorical("string-two", 51)
+        cat_one = get_categorical("string", 51)
+        cat_two = get_categorical("string-two", 51)
 
-        resultCat = catOne.concatenate([catTwo])
-        assert "Categorical" == resultCat.objType
-        assert isinstance(resultCat, ak.Categorical)
-        assert 100 == resultCat.size
-
-        # Since Categorical.concatenate uses Categorical.from_codes method, confirm
-        # that both permutation and segments are None
-        assert not resultCat.permutation
-        assert not resultCat.segments
-
-        resultCat = ak.concatenate([catOne, catOne], ordered=False)
-        assert "Categorical" == resultCat.objType
-        assert isinstance(resultCat, ak.Categorical)
-        assert 100 == resultCat.size
+        result_cat = cat_one.concatenate([cat_two])
+        assert "Categorical" == result_cat.objType
+        assert isinstance(result_cat, ak.Categorical)
+        assert 100 == result_cat.size
 
         # Since Categorical.concatenate uses Categorical.from_codes method, confirm
         # that both permutation and segments are None
-        assert not resultCat.permutation
-        assert not resultCat.segments
+        assert not result_cat.permutation
+        assert not result_cat.segments
+
+        result_cat = ak.concatenate([cat_one, cat_one], ordered=False)
+        assert "Categorical" == result_cat.objType
+        assert isinstance(result_cat, ak.Categorical)
+        assert 100 == result_cat.size
+
+        # Since Categorical.concatenate uses Categorical.from_codes method, confirm
+        # that both permutation and segments are None
+        assert not result_cat.permutation
+        assert not result_cat.segments
 
         # Concatenate two Categoricals with different categories,
         # and test result against original strings
@@ -283,13 +265,13 @@ class TestCategorical():
         c1 = ak.Categorical(s1)
         c2 = ak.Categorical(s2)
         # Ordered concatenation
-        s12ord = ak.concatenate([s1, s2], ordered=True)
-        c12ord = ak.concatenate([c1, c2], ordered=True)
-        assert ak.Categorical(s12ord).to_list() == c12ord.to_list()
+        s12_ord = ak.concatenate([s1, s2], ordered=True)
+        c12_ord = ak.concatenate([c1, c2], ordered=True)
+        assert ak.Categorical(s12_ord).to_list() == c12_ord.to_list()
         # Unordered (but still deterministic) concatenation
-        s12unord = ak.concatenate([s1, s2], ordered=False)
-        c12unord = ak.concatenate([c1, c2], ordered=False)
-        assert ak.Categorical(s12unord).to_list() == c12unord.to_list()
+        s12_unord = ak.concatenate([s1, s2], ordered=False)
+        c12_unord = ak.concatenate([c1, c2], ordered=False)
+        assert ak.Categorical(s12_unord).to_list() == c12_unord.to_list()
 
         # Tiny concatenation
         # Used to fail when length of array was less than numLocales
@@ -387,10 +369,7 @@ class TestCategorical():
 
         cat_from_codes = ak.Categorical.from_codes(ak.array([1, 2]), s)
         assert ak.in1d(s, s12).to_list() == ak.in1d(cat, cat_from_codes).to_list()
-        assert (
-            set(ak.unique(s12).to_list()) ==
-            set(ak.unique(cat_from_codes).to_list())
-        )
+        assert set(ak.unique(s12).to_list()) == set(ak.unique(cat_from_codes).to_list())
 
     def test_save_and_load_categorical_multi(self):
         """
@@ -415,7 +394,7 @@ class TestCategorical():
             unittest.TestCase().assertCountEqual(x["pda1"].to_list(), pda1.to_list())
             unittest.TestCase().assertCountEqual(x["strings1"].to_list(), strings1.to_list())
 
-    def test_NA(self):
+    def test_isna(self):
         s = ak.array(["A", "B", "C", "B", "C"])
         # NAval present in categories
         c = ak.Categorical(s, NAvalue="C")
@@ -459,12 +438,7 @@ class TestCategorical():
         cat = None
         assert len(ak.list_symbol_table()) == 0
 
-    def tear_down(self):
-        super(TestCategorical, self).tearDown()
-        for f in glob.glob("{}/*".format(TestCategorical.cat_test_base_tmp)):
-            os.remove(f)
-
-    @classmethod
-    def tearDownClass(cls):
-        super(TestCategorical, cls).tearDownClass()
-        shutil.rmtree(TestCategorical.cat_test_base_tmp)
+    # def tear_down(self):
+    #     super(TestCategorical, self).tear_down()
+    #     for f in glob.glob("{}/*".format(TestCategorical.cat_test_base_tmp)):
+    #         os.remove(f)
