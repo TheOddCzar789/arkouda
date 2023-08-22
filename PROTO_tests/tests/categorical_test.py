@@ -1,18 +1,16 @@
-import glob
 import os
-import shutil
 import tempfile
-
 import unittest
-import pytest
-import numpy as np
-import arkouda as ak
 
-from arkouda import io_util, io
+import numpy as np
+import pytest
+
+import arkouda as ak
+from arkouda import io, io_util
 
 
 def get_categorical(prefix: str = "string", size: int = 11) -> ak.Categorical:
-    return ak.Categorical(ak.array(["{} {}".format(prefix, i) for i in range(1, size)]))
+    return ak.Categorical(ak.array([f"{prefix} {i}" for i in range(1, size)]))
 
 
 def get_randomized_categorical() -> ak.Categorical:
@@ -37,8 +35,7 @@ def get_randomized_categorical() -> ak.Categorical:
 class TestCategorical:
     @classmethod
     def setup_class(cls):
-        # super(CategoricalTest, cls).setUpClass()
-        cls.cat_test_base_tmp = "{}/categorical_test".format(os.getcwd())
+        cls.cat_test_base_tmp = f"{os.getcwd()}/categorical_test"
         io_util.get_directory(cls.cat_test_base_tmp)
 
     def test_base_categorical(self):
@@ -120,7 +117,7 @@ class TestCategorical:
 
     def test_to_ndarray(self):
         cat = get_randomized_categorical()
-        ndcat = np.array(
+        nd_cat = np.array(
             [
                 "string",
                 "string1",
@@ -134,7 +131,7 @@ class TestCategorical:
                 "non-string",
             ]
         )
-        assert cat.to_list() == ndcat.tolist()
+        assert cat.to_list() == nd_cat.tolist()
 
     def test_equality(self):
         cat = get_categorical()
@@ -437,8 +434,3 @@ class TestCategorical:
         # set to none and validate no entries in symbol table
         cat = None
         assert len(ak.list_symbol_table()) == 0
-
-    # def tear_down(self):
-    #     super(TestCategorical, self).tear_down()
-    #     for f in glob.glob("{}/*".format(TestCategorical.cat_test_base_tmp)):
-    #         os.remove(f)
